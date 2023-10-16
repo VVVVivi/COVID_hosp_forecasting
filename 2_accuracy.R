@@ -5,7 +5,8 @@ knitr.table.format = "markdown"
 #' As always, remove all objects from the workspace before starting.
 rm(list = ls(all = TRUE))
 
-setwd("C:/Users/haowe/Desktop/COVID-forecasting")
+#' Set your own work path
+# setwd()
 
 #' Pull in packages needed
 source("./functions/load_packages.R")
