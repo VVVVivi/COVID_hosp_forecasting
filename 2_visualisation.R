@@ -2,11 +2,11 @@
 Sys.time()
 knitr.table.format = "markdown"
 
-#' As always, remove all objects fromt the workspace before starting.
+#' As always, remove all objects from the workspace before starting.
 rm(list = ls(all = TRUE))
 
-setwd("C:/Users/haowe/Desktop/COVID-forecasting")
-setwd("C:/Users/hw3616/Desktop/COVID-forecasting")
+#' Set your own work path
+# setwd()
 
 #' Pull in packages needed
 source("./functions/load_packages.R")
@@ -398,6 +398,60 @@ ave_acc_metric_allFea <- ave_acc_metric_allFea %>%
 bins_num <- c("3 levels", "5 levels", "10 levels")
 names(bins_num) <- c("3", "5", "10")
 
+
+############### Figure 2 ################
+ave_mMAE <- ggplot(ave_acc_metric_allFea[which(ave_acc_metric_allFea$Bins_type=="n-tile"),], 
+                   aes(x = Model, y = macroMAE, fill = Data)) +
+  geom_bar(stat="identity",position=position_dodge())+
+  facet_grid(Bins_num ~ ., labeller = labeller(Bins_num = bins_num))+
+  scale_x_discrete(# guide = guide_axis(n.dodge=2),
+    labels = c("Null Model" = "Null Model","OLR" = "OLR",
+               "XGBoost category" = "XGBoost\ncategory",
+               "XGBoost ordered" = "XGBoost\nordered"))+
+  labs(y = "macro-average Mean Absolute Error",
+       x = "Model")+
+  scale_fill_manual(values = wes_palette(name="Darjeeling1",4), 
+                    labels = c("Epi* features","Epi*+Weather features",
+                               "Epi*+Mobility\nfeatures",
+                               "Epi*+Mobility+\nWeather features"))+
+  theme_bw()+
+  theme(text = element_text(size = 22),
+        axis.text=element_text(size=20),
+        # axis.text.x = element_text(angle = 45,hjust=1),
+        legend.text = element_text(size=20),
+        legend.title = element_text(size=22),
+        legend.position="bottom")
+
+ave_acc <- ggplot(ave_acc_metric_allFea[which(ave_acc_metric_allFea$Bins_type=="n-tile"),], 
+                  aes(x = Model, y = Accuracy, fill = Data)) +
+  geom_bar(stat="identity",position=position_dodge())+
+  facet_grid(Bins_num ~ ., labeller = labeller(Bins_num = bins_num))+
+  scale_x_discrete(# guide = guide_axis(n.dodge=2),
+    labels = c("Null Model" = "Null Model","OLR" = "OLR",
+               "XGBoost category" = "XGBoost\ncategory",
+               "XGBoost ordered" = "XGBoost\nordered"))+
+  labs(y = "Accuracy",
+       x = "Model")+
+  scale_fill_manual(values = wes_palette(name="Darjeeling1",4), 
+                    labels = c("Epi* features","Epi*+Weather features",
+                               "Epi*+Mobility\nfeatures",
+                               "Epi*+Mobility+\nWeather features"))+
+  theme_bw()+
+  theme(text = element_text(size = 22),
+        axis.text=element_text(size=20),
+        # axis.text.x = element_text(angle = 45,hjust=1),
+        legend.text = element_text(size=20),
+        legend.title = element_text(size=22),
+        legend.position="bottom")
+
+ggarrange(ave_mMAE,ave_acc,
+          ncol = 1, nrow = 2, align = "v",
+          labels = c("A.", "B."), font.label = list(size = 22),
+          vjust = 0.9, hjust = -0.2,
+          common.legend = TRUE, legend = "bottom")
+ggsave(filename = "./figures/Figure3.pdf", width = 12, height = 16, dpi = 300, scale = 1)
+ggsave(filename = "./figures/Figure3.png", width = 12, height = 16, dpi = 300, scale = 1)
+
 ############### Figure 2 ###############
 
 #' Compare mMAE of XGBoost models trained by different set of features
@@ -463,59 +517,6 @@ ggarrange(xgb_mMAE_compare,xgb_acc_compare,
 
 ggsave(filename = "./figures/Figure2.pdf", width = 14, height = 16, dpi = 300, scale = 1)
 ggsave(filename = "./figures/Figure2.png", width = 14, height = 16, dpi = 300, scale = 1)
-
-############### Figure 3 ################
-ave_mMAE <- ggplot(ave_acc_metric_allFea[which(ave_acc_metric_allFea$Bins_type=="n-tile"),], 
-                   aes(x = Model, y = macroMAE, fill = Data)) +
-  geom_bar(stat="identity",position=position_dodge())+
-  facet_grid(Bins_num ~ ., labeller = labeller(Bins_num = bins_num))+
-  scale_x_discrete(# guide = guide_axis(n.dodge=2),
-    labels = c("Null Model" = "Null Model","OLR" = "OLR",
-               "XGBoost category" = "XGBoost\ncategory",
-               "XGBoost ordered" = "XGBoost\nordered"))+
-  labs(y = "macro-average Mean Absolute Error",
-       x = "Model")+
-  scale_fill_manual(values = wes_palette(name="Darjeeling1",4), 
-                    labels = c("Epi* features","Epi*+Weather features",
-                               "Epi*+Mobility\nfeatures",
-                               "Epi*+Mobility+\nWeather features"))+
-  theme_bw()+
-  theme(text = element_text(size = 22),
-        axis.text=element_text(size=20),
-        # axis.text.x = element_text(angle = 45,hjust=1),
-        legend.text = element_text(size=20),
-        legend.title = element_text(size=22),
-        legend.position="bottom")
-
-ave_acc <- ggplot(ave_acc_metric_allFea[which(ave_acc_metric_allFea$Bins_type=="n-tile"),], 
-                  aes(x = Model, y = Accuracy, fill = Data)) +
-  geom_bar(stat="identity",position=position_dodge())+
-  facet_grid(Bins_num ~ ., labeller = labeller(Bins_num = bins_num))+
-  scale_x_discrete(# guide = guide_axis(n.dodge=2),
-    labels = c("Null Model" = "Null Model","OLR" = "OLR",
-               "XGBoost category" = "XGBoost\ncategory",
-               "XGBoost ordered" = "XGBoost\nordered"))+
-  labs(y = "Accuracy",
-       x = "Model")+
-  scale_fill_manual(values = wes_palette(name="Darjeeling1",4), 
-                    labels = c("Epi* features","Epi*+Weather features",
-                               "Epi*+Mobility\nfeatures",
-                               "Epi*+Mobility+\nWeather features"))+
-  theme_bw()+
-  theme(text = element_text(size = 22),
-        axis.text=element_text(size=20),
-        # axis.text.x = element_text(angle = 45,hjust=1),
-        legend.text = element_text(size=20),
-        legend.title = element_text(size=22),
-        legend.position="bottom")
-
-ggarrange(ave_mMAE,ave_acc,
-          ncol = 1, nrow = 2, align = "v",
-          labels = c("A.", "B."), font.label = list(size = 22),
-          vjust = 0.9, hjust = -0.2,
-          common.legend = TRUE, legend = "bottom")
-ggsave(filename = "./figures/Figure3.pdf", width = 12, height = 16, dpi = 300, scale = 1)
-ggsave(filename = "./figures/Figure3.png", width = 12, height = 16, dpi = 300, scale = 1)
 
 ############### Figure S1 ################
 
@@ -641,64 +642,8 @@ ggarrange(epi_curve_5bins,
 ggsave(filename = "./figures/FigS2B.pdf", width = 18, height = 20, dpi = 300, scale = 1)
 ggsave(filename = "./figures/FigS2B.png", width = 18, height = 20, dpi = 300, scale = 1)
 
+
 ############### Figure S3 ################
-
-#' Compare mMAE and Acc for uniform-interval levels 
-ave_acc_metric_allFea_uniform <- ave_acc_metric_allFea %>%
-  filter(Bins_type == "Uniform")
-
-ave_mMAE_uni <- ggplot(ave_acc_metric_allFea_uniform, aes(x = Model, y = macroMAE, fill = Data)) +
-  geom_bar(stat="identity",position=position_dodge())+
-  facet_grid(Bins_num ~ ., labeller = labeller(Bins_num = bins_num))+
-  scale_x_discrete(# guide = guide_axis(n.dodge=2),
-    labels = c("Null Model" = "Null Model","OLR" = "OLR",
-               "XGBoost category" = "XGBoost\ncategory",
-               "XGBoost ordered" = "XGBoost\nordered"))+
-  labs(y = "macro-average Mean Absolute Error",
-       x = "Model")+
-  scale_fill_manual(values = wes_palette(name="Darjeeling1",4), 
-                    labels = c("Epi* features","Epi*+Weather features",
-                               "Epi*+Mobility\nfeatures",
-                               "Epi*+Mobility+\nWeather features"))+
-  theme_bw()+
-  theme(text = element_text(size = 22),
-        axis.text=element_text(size=20),
-        # axis.text.x = element_text(angle = 45,hjust=1),
-        legend.text = element_text(size=20),
-        legend.title = element_text(size=22),
-        legend.position="bottom")
-
-ave_acc_uni <- ggplot(ave_acc_metric_allFea, aes(x = Model, y = Accuracy, fill = Data)) +
-  geom_bar(stat="identity",position=position_dodge())+
-  facet_grid(Bins_num ~ ., labeller = labeller(Bins_num = bins_num))+
-  scale_x_discrete(# guide = guide_axis(n.dodge=2),
-    labels = c("Null Model" = "Null Model","OLR" = "OLR",
-               "XGBoost category" = "XGBoost\ncategory",
-               "XGBoost ordered" = "XGBoost\nordered"))+
-  labs(y = "Accuracy",
-       x = "Model")+
-  scale_fill_manual(values = wes_palette(name="Darjeeling1",4), 
-                    labels = c("Epi* features","Epi*+Weather features",
-                               "Epi*+Mobility\nfeatures",
-                               "Epi*+Mobility+\nWeather features"))+
-  theme_bw()+
-  theme(text = element_text(size = 22),
-        axis.text=element_text(size=20),
-        # axis.text.x = element_text(angle = 45,hjust=1),
-        legend.text = element_text(size=20),
-        legend.title = element_text(size=22),
-        legend.position="bottom")
-
-ggarrange(ave_mMAE_uni,ave_acc_uni,
-          ncol = 1, nrow = 2, align = "v",
-          labels = c("A.", "B."), font.label = list(size = 22),
-          vjust = 0.9, hjust = -0.2,
-          common.legend = TRUE, legend = "bottom")
-
-ggsave(filename = "./figures/FigS3.pdf", width = 14, height = 16, dpi = 300, scale = 1)
-ggsave(filename = "./figures/FigS3.png", width = 14, height = 16, dpi = 300, scale = 1)
-
-############### Figure S4 ################
 mMAE_compare_XGB_epi <- ave_acc_metric_epi %>% 
   mutate(Bins_type = ifelse(Bins_type == "Quantile", "n-tile", Bins_type)) %>%
   mutate(Bins_num = factor(Bins_num, levels = c("3","5","10")), 
@@ -756,7 +701,7 @@ ggarrange(xgbOrder_mMAE_compare_epi,xgbOrder_acc_compare_epi,
 ggsave(filename = "./figures/FigureS4.pdf", width = 12, height = 16, dpi = 300, scale = 1)
 ggsave(filename = "./figures/FigureS4.png", width = 12, height = 16, dpi = 300, scale = 1)
 
-############### Figure S5 ################
+############### Figure S4 ################
 #' Compare mMAE of the XGBoost models trained by weather features
 mMAE_compare_XGB_wea <- rbind(ave_acc_metric_epi[which(ave_acc_metric_epi$Model %in% c("XGBoost category","XGBoost ordered")),],
                               ave_acc_metric_weather[which(ave_acc_metric_weather$Model %in% c("XGBoost category","XGBoost ordered")),]) %>% 
@@ -814,7 +759,7 @@ ggsave(filename = "./figures/FigureS5.pdf", width = 12, height = 16, dpi = 300, 
 ggsave(filename = "./figures/FigureS5.png", width = 12, height = 16, dpi = 300, scale = 1)
 
 
-############### Figure S6 ################
+############### Figure S5 ################
 mMAE_compare_XGB_mobi <- rbind(ave_acc_metric_epi[which(ave_acc_metric_epi$Model %in% c("XGBoost category","XGBoost ordered")),],
                                ave_acc_metric_mobi[which(ave_acc_metric_mobi$Model %in% c("XGBoost category","XGBoost ordered")),]) %>% 
   mutate(Bins_num = factor(Bins_num, levels = c("3","5","10")),
