@@ -449,10 +449,10 @@ ggarrange(ave_mMAE,ave_acc,
           labels = c("A.", "B."), font.label = list(size = 22),
           vjust = 0.9, hjust = -0.2,
           common.legend = TRUE, legend = "bottom")
-ggsave(filename = "./figures/Figure3.pdf", width = 12, height = 16, dpi = 300, scale = 1)
-ggsave(filename = "./figures/Figure3.png", width = 12, height = 16, dpi = 300, scale = 1)
+ggsave(filename = "./figures/Figure2.pdf", width = 12, height = 16, dpi = 300, scale = 1)
+ggsave(filename = "./figures/Figure2.png", width = 12, height = 16, dpi = 300, scale = 1)
 
-############### Figure 2 ###############
+############### Figure 3 ###############
 
 #' Compare mMAE of XGBoost models trained by different set of features
 mMAE_compare_XGB <- rbind(ave_acc_metric_epi[which(ave_acc_metric_epi$Model %in% c("XGBoost category","XGBoost ordered")),],
@@ -515,8 +515,444 @@ ggarrange(xgb_mMAE_compare,xgb_acc_compare,
           vjust = 1, hjust = -0.8,
           common.legend = TRUE, legend = "bottom")
 
-ggsave(filename = "./figures/Figure2.pdf", width = 14, height = 16, dpi = 300, scale = 1)
-ggsave(filename = "./figures/Figure2.png", width = 14, height = 16, dpi = 300, scale = 1)
+ggsave(filename = "./figures/Figure3.pdf", width = 14, height = 16, dpi = 300, scale = 1)
+ggsave(filename = "./figures/Figure3.png", width = 14, height = 16, dpi = 300, scale = 1)
+
+############### Figure 4 ###############
+#' facet by data type, compare 1- to 4-week ahead predictions,
+#' only look at ordered XGBoost and quantile levels
+region_acc_ordered_allFea <- region_acc_metric_allFea %>%
+  filter(Bins_type == "Quantile") %>%
+  filter(Model == "XGBoost ordered")
+
+#' Compare mMAE
+mMAE_byRegion_quan <- ggplot(region_acc_ordered_allFea, 
+                             aes(x = nWeek_ahead, y = macroMAE, group=Data))+
+  geom_point(aes(color = Data), size = 3)+
+  geom_line(aes(color = Data), linewidth = 1.5)+
+  scale_x_discrete(labels=c("1","2" ,"3", "4"))+
+  facet_grid(Bins_num~nhs_Region, labeller = labeller(nhs_Region=region_names, Bins_num=bins_num))+
+  labs(y = "macro-average Mean Absolute Error",
+       x = "n-week ahead")+
+  scale_color_manual(values = wes_palette(name="GrandBudapest1",4))+
+  theme_bw()+
+  theme(text = element_text(size = 22),
+        axis.text=element_text(size=20),
+        legend.text = element_text(size=20),
+        legend.title = element_text(size=22),
+        legend.position="bottom") 
+
+#' Compare Accuracy
+acc_byRegion_quan <- ggplot(region_acc_ordered_allFea, 
+                                  aes(x = nWeek_ahead, y = Accuracy, group=Data))+
+  geom_point(aes(color = Data), size = 3)+
+  geom_line(aes(color = Data), linewidth = 1.5)+
+  scale_x_discrete(labels=c("1","2" ,"3", "4"))+
+  facet_grid(Bins_num~nhs_Region, labeller = labeller(nhs_Region=region_names, Bins_num=bins_num))+
+  labs(y = "Accuracy",
+       x = "n-week ahead")+
+  scale_color_manual(values = wes_palette(name="GrandBudapest1",4))+
+  theme_bw()+
+  theme(text = element_text(size = 22),
+        axis.text=element_text(size=20),
+        legend.text = element_text(size=20),
+        legend.title = element_text(size=22),
+        legend.position="bottom") 
+
+
+ggarrange(mMAE_byRegion_quan,acc_byRegion_quan,
+          ncol = 1, nrow = 2, align = "v",
+          labels = c("A.", "B."), font.label = list(size = 22),
+          hjust = -0.8,
+          common.legend = TRUE, legend = "bottom")
+
+ggsave(filename = "./figures/Figure4.pdf", width = 14, height = 18, dpi = 300, scale = 1)
+ggsave(filename = "./figures/Figure4.png", width = 14, height = 18, dpi = 300, scale = 1)
+
+############### Figure 5 ################
+region_names <- c(
+  # "All" = "All",
+  "East of England" = "East of \n England",
+  "London" = "London",
+  "Midlands" = "Midlands",
+  "North East and Yorkshire" = "North East \nand Yorkshire",
+  "North West" =  "North West",
+  "South East" = "South East",
+  "South West" = "South West"
+)
+
+
+acc_metrics_tab_epi <- acc_metrics_tab_epi %>% 
+  mutate(Data = "Epi* features")%>%
+  mutate(Bins_num = factor(Bins_num, levels = c("3", "5","10")),
+         Bins_type = factor(Bins_type, levels = c("Uniform", "Quantile")))
+
+ave_acc_metric_epi <- acc_metrics_tab_epi %>%
+  filter(nhs_Region=="Average")
+
+acc_metrics_tab_mobi <- acc_metrics_tab_mobi %>% 
+  mutate(Data = "Epi*+Mobility features")%>%
+  mutate(Bins_num = factor(Bins_num, levels = c("3", "5","10")),
+         Bins_type = factor(Bins_type, levels = c("Uniform", "Quantile")))
+
+ave_acc_metric_mobi <- acc_metrics_tab_mobi %>%
+  filter(nhs_Region=="Average")
+
+acc_metrics_tab_mobiwea <- acc_metrics_tab_mobiwea %>% 
+  mutate(Data = "Epi*+Mobility+Weather features")%>%
+  mutate(Bins_num = factor(Bins_num, levels = c("3", "5","10")),
+         Bins_type = factor(Bins_type, levels = c("Uniform", "Quantile")))
+
+ave_acc_metric_mobiwea <- acc_metrics_tab_mobiwea %>%
+  filter(nhs_Region=="Average")
+
+acc_metrics_tab_weather <- acc_metrics_tab_weather %>% 
+  mutate(Data = "Epi*+Weather features")%>%
+  mutate(Bins_num = factor(Bins_num, levels = c("3", "5","10")),
+         Bins_type = factor(Bins_type, levels = c("Uniform", "Quantile")))
+
+ave_acc_metric_weather <- acc_metrics_tab_weather %>%
+  filter(nhs_Region=="Average")
+
+ave_acc_metric_allFea <- rbind(ave_acc_metric_epi, ave_acc_metric_mobi) %>%
+  rbind(.,ave_acc_metric_mobiwea) %>% 
+  rbind(.,ave_acc_metric_weather)
+
+ave_acc_metric_epiweamob <- ave_acc_metric_allFea %>%
+  filter(Data == "Epi*+Mobility+Weather features")
+
+ave_acc_metric_allFea <- ave_acc_metric_allFea%>% 
+  filter(nWeek_ahead == "4-week ahead") %>%
+  mutate(Data = factor(Data, levels = c("Epi* features", "Epi*+Weather features",
+                                        "Epi*+Mobility features", 
+                                        "Epi*+Mobility+Weather features")),
+         Model = factor(Model, levels = c("Null Model", "OLR", 
+                                          "XGBoost category", "XGBoost ordered")))
+
+
+bins_num <- c("3 levels", "5 levels", "10 levels")
+names(bins_num) <- c("3", "5", "10")
+
+
+acc_metrics_tab_mobi <- acc_metrics_tab_mobi %>%
+  mutate(nhs_Region = factor(nhs_Region, levels = c("Average", "East of England", "London", 
+                                                "Midlands", "North East and Yorkshire",
+                                                "North West", "South East", "South West")),
+         nWeek_ahead = factor(nWeek_ahead, levels = c("1-week ahead", "2-week ahead",
+                                                      "3-week ahead", "4-week ahead")),
+         Model = factor(Model, levels = c("Null Model", "OLR", 
+                                          "XGBoost category", "XGBoost ordered")))
+
+acc_metrics_tab_mobiwea <- acc_metrics_tab_mobiwea %>%
+  mutate(nhs_Region = factor(nhs_Region, levels = c("Average", "East of England", "London", 
+                                                    "Midlands", "North East and Yorkshire",
+                                                    "North West", "South East", "South West")),
+         nWeek_ahead = factor(nWeek_ahead, levels = c("1-week ahead", "2-week ahead",
+                                                      "3-week ahead", "4-week ahead")),
+         Model = factor(Model, levels = c("Null Model", "OLR", 
+                                          "XGBoost category", "XGBoost ordered")))
+
+region_acc_metric_epi <- acc_metrics_tab_epi %>% 
+  filter(nhs_Region!="Average")
+
+region_acc_metric_mobi <- acc_metrics_tab_mobi %>% 
+  filter(nhs_Region!="Average")
+
+region_acc_metric_weather <- acc_metrics_tab_weather %>% 
+  filter(nhs_Region!="Average")
+
+region_acc_metric_mobiwea <- acc_metrics_tab_mobiwea %>% 
+  filter(nhs_Region!="Average")
+
+region_acc_metric_allFea <- rbind(region_acc_metric_epi, region_acc_metric_mobi) %>%
+  rbind(.,region_acc_metric_weather) %>% 
+  rbind(.,region_acc_metric_mobiwea) %>% 
+  mutate(Data = factor(Data, levels = c("Epi* features", "Epi*+Weather features",
+                                        "Epi*+Mobility features", 
+                                        "Epi*+Mobility+Weather features")),
+         Model = factor(Model, levels = c("Null Model", "OLR", 
+                                          "XGBoost category", "XGBoost ordered")))
+
+#' facet by data type for 4-week ahead prediction for quantile 
+region_acc_allFea_4week <- region_acc_metric_allFea %>%
+  filter(nWeek_ahead == "4-week ahead") %>%
+  filter(Bins_type == "Quantile")
+  
+region_mMAE <- ggplot(region_acc_allFea_4week, aes(x = Model, y = macroMAE, fill = Data)) +
+  geom_bar(stat="identity",position=position_dodge())+
+  facet_grid(Bins_num ~ nhs_Region, labeller = labeller(nhs_Region=region_names,
+                                                        Bins_num = bins_num))+
+  scale_x_discrete(# guide = guide_axis(n.dodge=2),
+    labels = c("Null Model" = "Null Model","OLR" = "OLR",
+               "XGBoost category" = "XGBoost category",
+               "XGBoost ordered" = "XGBoost ordered"))+
+  labs(y = "macro-average Mean Absolute Error",
+       x = "Model")+
+  scale_fill_manual(values = wes_palette(name="Darjeeling1",4), 
+                    labels = c("Epi* features","Epi*+Weather features",
+                               "Epi*+Mobility\nfeatures",
+                               "Epi*+Mobility+\nWeather features"))+
+  theme_bw()+
+  theme(text = element_text(size = 22),
+        axis.text=element_text(size=20),
+        axis.text.x = element_text(angle = 45, hjust =1),
+        legend.text = element_text(size=20),
+        legend.title = element_text(size=22),
+        legend.position="bottom")
+
+region_acc <- ggplot(region_acc_allFea_4week, aes(x = Model, y = Accuracy, fill = Data)) +
+  geom_bar(stat="identity",position=position_dodge())+
+  facet_grid(Bins_num ~ nhs_Region, labeller = labeller(nhs_Region=region_names,
+                                                        Bins_num = bins_num))+
+  scale_x_discrete(# guide = guide_axis(n.dodge=2),
+    labels = c("Null Model" = "Null Model","OLR" = "OLR",
+               "XGBoost category" = "XGBoost category",
+               "XGBoost ordered" = "XGBoost ordered"))+
+  labs(y = "Accuracy",
+       x = "Model")+
+  scale_fill_manual(values = wes_palette(name="Darjeeling1",4), 
+                    labels = c("Epi* features","Epi*+Weather features",
+                               "Epi*+Mobility\nfeatures",
+                               "Epi*+Mobility+\nWeather features"))+
+  theme_bw()+
+  theme(text = element_text(size = 22),
+        axis.text=element_text(size=20),
+        axis.text.x = element_text(angle = 45, hjust =1),
+        legend.text = element_text(size=20),
+        legend.title = element_text(size=22),
+        legend.position="bottom")
+
+
+ggarrange(region_mMAE,region_acc,
+          ncol = 1, nrow = 2, align = "v",
+          labels = c("A.", "B."), font.label = list(size = 22),
+          vjust = 1, hjust = -0.8,
+          common.legend = TRUE, legend = "bottom")
+
+ggsave(filename = "./figures/Figure5.pdf", width = 14, height = 18, dpi = 300, scale = 1)
+ggsave(filename = "./figures/Figure5.png", width = 14, height = 18, dpi = 300, scale = 1) 
+
+############### Figure 6 ################
+actual_pred_compare_plot <- function(data, region, class_num){
+  data_one <- data[which(data$nhs_region==region & data$Time_horizon %in% c("Actual", "1week_pred")),]
+  data_two <- data[which(data$nhs_region==region & data$Time_horizon %in% c("Actual", "2week_pred")),]
+  data_three <- data[which(data$nhs_region==region & data$Time_horizon %in% c("Actual", "3week_pred")),]
+  data_four <- data[which(data$nhs_region==region & data$Time_horizon %in% c("Actual", "4week_pred")),]
+    
+  one_week <- ggplot(data = data_one,
+                     aes(x = Week)) +
+    geom_line(data = data_one[which(data_one$Data == "Epi* features" & data_one$Time_horizon=="Actual"),], 
+              aes(y = Hospitalization_level, group = Time_horizon,color = Time_horizon), linewidth = 1.5, alpha=0.5)+
+    geom_point(data = data_one[which(data_one$Data == "Epi* features" & data_one$Time_horizon=="Actual"),], 
+               aes(y = Hospitalization_level, color=Time_horizon), size = 3,alpha=0.5)+
+    geom_line(data = data_one[which(data_one$Data == "Epi* features"& data_one$Time_horizon=="1week_pred"),], 
+              aes(y = Hospitalization_level,group = Data, color = Data), linewidth = 1.5)+
+    geom_point(data = data_one[which(data_one$Data == "Epi* features"& data_one$Time_horizon=="1week_pred"),], 
+               aes(y = Hospitalization_level, color = Data), size = 3)+
+    geom_line(data = data_one[which(data_one$Data == "Epi*+Weather features"& data_one$Time_horizon=="1week_pred"),], 
+              aes(y = Hospitalization_level, group = Data,color = Data), linewidth = 1.5)+
+    geom_point(data = data_one[which(data_one$Data == "Epi*+Weather features"& data_one$Time_horizon=="1week_pred"),], 
+               aes(y = Hospitalization_level,color = Data), size = 3)+
+    geom_line(data = data_one[which(data_one$Data == "Epi*+Mobility features"& data_one$Time_horizon=="1week_pred"),], 
+              aes(y = Hospitalization_level, group = Data,color = Data), linewidth = 1.5)+
+    geom_point(data = data_one[which(data_one$Data == "Epi*+Mobility features"& data_one$Time_horizon=="1week_pred"),], 
+               aes(y = Hospitalization_level,color = Data), size = 3)+
+    geom_line(data = data_one[which(data_one$Data == "Epi*+Mobility+Weather features"& data_one$Time_horizon=="1week_pred"),], 
+              aes(y = Hospitalization_level, group = Data,color = Data), linewidth = 1.5, alpha=0.5)+
+    geom_point(data = data_one[which(data_one$Data == "Epi*+Mobility+Weather features"& data_one$Time_horizon=="1week_pred"),], 
+               aes(y = Hospitalization_level, color = Data), size = 3, alpha=0.5)+
+    labs(x = "Week",
+         y = "Hospitalisation level",
+         color = NULL)+
+    scale_color_manual(values = c("grey",brewer.pal(n=4, "Set2")), 
+                       labels = c("Actual","Epi*","Epi*+Weather",
+                                  "Epi*+Mobility",
+                                  "Epi*+Mobility+Weather"))+
+    scale_x_discrete(breaks = c("01","13","26","39","52"), 
+                     labels = c("2022-01","2022-13","2022-26","2022-39","2022-52"))+
+    scale_y_continuous(breaks = c(1:class_num), limits = c(1,class_num))+
+    theme_bw()+
+    theme(text = element_text(size = 24),
+          axis.text=element_text(size=24),
+          axis.text.x = element_text(angle = 45,hjust=1),
+          legend.text = element_text(size=20),
+          legend.title = element_text(size=22),
+          legend.position = c(0.19, 0.2),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank())
+
+  two_week <- ggplot(data = data_two,
+                     aes(x = Week)) +
+    geom_line(data = data_two[which(data_two$Time_horizon=="Actual"),], 
+              aes(y = Hospitalization_level, group = Time_horizon, color = Time_horizon), linewidth = 1.5, alpha=0.5)+
+    geom_point(data = data_two[which(data_two$Time_horizon=="Actual"),], 
+               aes(y = Hospitalization_level, color=Time_horizon), size = 3,alpha=0.5)+
+    geom_line(data = data_two[which(data_two$Data == "Epi* features"& data_two$Time_horizon=="2week_pred"),], 
+              aes(y = Hospitalization_level,group = Data, color = Data), linewidth = 1.5)+
+    geom_point(data = data_two[which(data_two$Data == "Epi* features"& data_two$Time_horizon=="2week_pred"),], 
+               aes(y = Hospitalization_level, color = Data), size = 3)+
+    geom_line(data = data_one[which(data_one$Data == "Epi*+Weather features"& data_one$Time_horizon=="1week_pred"),], 
+              aes(y = Hospitalization_level, group = Data,color = Data), linewidth = 1.5)+
+    geom_point(data = data_one[which(data_one$Data == "Epi*+Weather features"& data_one$Time_horizon=="1week_pred"),], 
+               aes(y = Hospitalization_level,color = Data), size = 3)+
+    geom_line(data = data_two[which(data_two$Data == "Epi*+Mobility features"& data_two$Time_horizon=="2week_pred"),], 
+              aes(y = Hospitalization_level, group = Data,color = Data), linewidth = 1.5)+
+    geom_point(data = data_two[which(data_two$Data == "Epi*+Mobility features"& data_two$Time_horizon=="2week_pred"),], 
+               aes(y = Hospitalization_level,color = Data), size = 3)+
+    geom_line(data = data_two[which(data_two$Data == "Epi*+Mobility+Weather features"& data_two$Time_horizon=="2week_pred"),], 
+              aes(y = Hospitalization_level,group = Data, color = Data), linewidth = 1.5, alpha=0.5)+
+    geom_point(data = data_two[which(data_two$Data == "Epi*+Mobility+Weather features"& data_two$Time_horizon=="2week_pred"),], 
+               aes(y = Hospitalization_level, color = Data), size = 3, alpha=0.5)+
+    labs(x = "Week",
+         y = "Hospitalisation level",
+         color = NULL)+
+    scale_color_manual(values = c("grey",brewer.pal(n=4, "Set2")), 
+                       labels = c("Actual","Epi*","Epi*+Weather",
+                                  "Epi*+Mobility",
+                                  "Epi*+Mobility+Weather"))+
+    scale_x_discrete(breaks = c("01","13","26","39","52"), 
+                     labels = c("2022-01","2022-13","2022-26","2022-39","2022-52"))+
+    scale_y_continuous(breaks = c(1:class_num), limits = c(1,class_num))+
+    theme_bw()+
+    theme(text = element_text(size = 24),
+          axis.text=element_text(size=24),
+          axis.text.x = element_text(angle = 45,hjust=1),
+          legend.text = element_text(size=20),
+          legend.title = element_text(size=22),
+          legend.position = c(0.19, 0.2),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank())
+  
+  three_week <- ggplot(data = data_three,
+                       aes(x = Week)) +
+    geom_line(data = data_three[which(data_three$Data == "Epi* features" & data_three$Time_horizon=="Actual"),], 
+              aes(y = Hospitalization_level, group = Time_horizon,color = Time_horizon), linewidth = 1.5, alpha=0.5)+
+    geom_point(data = data_three[which(data_three$Data == "Epi* features" & data_three$Time_horizon=="Actual"),], 
+               aes(y = Hospitalization_level, color=Time_horizon), size = 3,alpha=0.5)+
+    geom_line(data = data_three[which(data_three$Data == "Epi* features"& data_three$Time_horizon=="3week_pred"),], 
+              aes(y = Hospitalization_level, group = Data,color = Data), linewidth = 1.5)+
+    geom_point(data = data_three[which(data_three$Data == "Epi* features"& data_three$Time_horizon=="3week_pred"),], 
+               aes(y = Hospitalization_level, color = Data), size = 3)+
+    geom_line(data = data_one[which(data_one$Data == "Epi*+Weather features"& data_one$Time_horizon=="1week_pred"),], 
+              aes(y = Hospitalization_level, group = Data,color = Data), linewidth = 1.5)+
+    geom_point(data = data_one[which(data_one$Data == "Epi*+Weather features"& data_one$Time_horizon=="1week_pred"),], 
+               aes(y = Hospitalization_level,color = Data), size = 3)+
+    geom_line(data = data_three[which(data_three$Data == "Epi*+Mobility features"& data_three$Time_horizon=="3week_pred"),], 
+              aes(y = Hospitalization_level, group = Data,color = Data), linewidth = 1.5)+
+    geom_point(data = data_three[which(data_three$Data == "Epi*+Mobility features"& data_three$Time_horizon=="3week_pred"),], 
+               aes(y = Hospitalization_level,color = Data), size = 3)+
+    geom_line(data = data_three[which(data_three$Data == "Epi*+Mobility+Weather features"& data_three$Time_horizon=="3week_pred"),], 
+              aes(y = Hospitalization_level, group = Data,color = Data), linewidth = 1.5, alpha=0.5)+
+    geom_point(data = data_three[which(data_three$Data == "Epi*+Mobility+Weather features"& data_three$Time_horizon=="3week_pred"),], 
+               aes(y = Hospitalization_level, color = Data), size = 3, alpha=0.5)+
+    labs(x = "Week",
+         y = "Hospitalisation level",
+         color = NULL)+
+    scale_color_manual(values = c("grey",brewer.pal(n=4, "Set2")), 
+                       labels = c("Actual","Epi*","Epi*+Weather",
+                                  "Epi*+Mobility",
+                                  "Epi*+Mobility+Weather"))+
+    scale_x_discrete(breaks = c("01","13","26","39","52"), 
+                     labels = c("2022-01","2022-13","2022-26","2022-39","2022-52"))+
+    scale_y_continuous(breaks = c(1:class_num), limits = c(1,class_num))+
+    theme_bw()+
+    theme(text = element_text(size = 24),
+          axis.text=element_text(size=24),
+          axis.text.x = element_text(angle = 45,hjust=1),
+          legend.text = element_text(size=20),
+          legend.title = element_text(size=22),
+          legend.position = c(0.19, 0.2),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank())
+  
+  four_week <- ggplot(data = data_four,
+                      aes(x = Week)) +
+    geom_line(data = data_four[which(data_four$Data == "Epi* features" & data_four$Time_horizon=="Actual"),], 
+              aes(y = Hospitalization_level, group = Time_horizon,color = Time_horizon), linewidth = 1.5, alpha=0.5)+
+    geom_point(data = data_four[which(data_four$Data == "Epi* features" & data_four$Time_horizon=="Actual"),], 
+               aes(y = Hospitalization_level, color=Time_horizon), size = 3,alpha=0.5)+
+    geom_line(data = data_four[which(data_four$Data == "Epi* features"& data_four$Time_horizon=="4week_pred"),], 
+              aes(y = Hospitalization_level, group = Data,color = Data), linewidth = 1.5)+
+    geom_point(data = data_four[which(data_four$Data == "Epi* features"& data_four$Time_horizon=="4week_pred"),], 
+               aes(y = Hospitalization_level, color = Data), size = 3)+
+    geom_line(data = data_one[which(data_one$Data == "Epi*+Weather features"& data_one$Time_horizon=="1week_pred"),], 
+              aes(y = Hospitalization_level, group = Data,color = Data), linewidth = 1.5)+
+    geom_point(data = data_one[which(data_one$Data == "Epi*+Weather features"& data_one$Time_horizon=="1week_pred"),], 
+               aes(y = Hospitalization_level,color = Data), size = 3)+
+    geom_line(data = data_four[which(data_four$Data == "Epi*+Mobility features"& data_four$Time_horizon=="4week_pred"),], 
+              aes(y = Hospitalization_level, group = Data,color = Data), linewidth = 1.5)+
+    geom_point(data = data_four[which(data_four$Data == "Epi*+Mobility features"& data_four$Time_horizon=="4week_pred"),], 
+               aes(y = Hospitalization_level,color = Data), size = 3)+
+    geom_line(data = data_four[which(data_four$Data == "Epi*+Mobility+Weather features"& data_four$Time_horizon=="4week_pred"),], 
+              aes(y = Hospitalization_level, group = Data,color = Data), linewidth = 1.5, alpha=0.5)+
+    geom_point(data = data_four[which(data_four$Data == "Epi*+Mobility+Weather features"& data_four$Time_horizon=="4week_pred"),], 
+               aes(y = Hospitalization_level, color = Data), size = 3, alpha=0.5)+
+    labs(x = "Week",
+         y = "Hospitalisation level",
+         color = NULL)+
+    scale_color_manual(values = c("grey",brewer.pal(n=4, "Set2")), 
+                       labels = c("Actual","Epi*","Epi*+Weather",
+                                  "Epi*+Mobility",
+                                  "Epi*+Mobility+Weather"))+
+    scale_x_discrete(breaks = c("01","13","26","39","52"), 
+                     labels = c("2022-01","2022-13","2022-26","2022-39","2022-52"))+
+    scale_y_continuous(breaks = c(1:class_num), limits = c(1,class_num))+
+    theme_bw()+
+    theme(text = element_text(size = 24),
+          axis.text=element_text(size=24),
+          axis.text.x = element_text(angle = 45,hjust=1),
+          legend.text = element_text(size=20),
+          legend.title = element_text(size=22),
+          legend.position = c(0.19, 0.2),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank())
+  
+  if(region %in% c("East of England","North West")){
+    plot <- ggarrange(one_week+ggtitle("1-week ahead"), two_week+ggtitle("2-week ahead"), 
+                      three_week+ggtitle("3-week ahead"), four_week+ggtitle("4-week ahead"),
+                      nrow = 1, ncol = 4) 
+  }else{
+    plot <- ggarrange(one_week, two_week, three_week, four_week,
+                      nrow = 1, ncol = 4) 
+  }
+
+  return((plot))
+}
+
+########## 10 bins
+EE_compare <- actual_pred_compare_plot(df_xgb_pred_ordered_quan10bins, "East of England",10)
+EE_compare <- annotate_figure(EE_compare, right = text_grob("East of England", 
+                                                           size =24,rot = -90))
+LON_compare <- actual_pred_compare_plot(df_xgb_pred_ordered_quan10bins, "London",10)
+LON_compare <- annotate_figure(LON_compare, right = text_grob("London", size =24,rot = -90))
+
+MID_compare <- actual_pred_compare_plot(df_xgb_pred_ordered_quan10bins, "Midlands",10)
+MID_compare <- annotate_figure(MID_compare, right = text_grob("Midlands",size =24, rot = -90))
+
+NEY_compare <- actual_pred_compare_plot(df_xgb_pred_ordered_quan10bins, "North East and Yorkshire",10)
+NEY_compare <- annotate_figure(NEY_compare, right = text_grob("North East and Yorkshire", size =24,rot = -90))
+
+ggarrange(EE_compare, LON_compare, MID_compare, NEY_compare, 
+          nrow = 4, ncol = 1, labels = "A.", font.label = list(size = 28))
+
+ggsave(filename = "./figures/Figure6A.pdf", width = 44, height = 30, dpi = 300, scale = 1)
+ggsave(filename = "./figures/Figure6A.png", width = 44, height = 30, dpi = 300, scale = 1)
+
+NW_compare <- actual_pred_compare_plot(df_xgb_pred_ordered_quan10bins, "North West",10)
+NW_compare <- annotate_figure(NW_compare, right = text_grob("North West", size =24,rot = -90))
+
+SE_compare <- actual_pred_compare_plot(df_xgb_pred_ordered_quan10bins, "South East",10)
+SE_compare <- annotate_figure(SE_compare, right = text_grob("South East",size =24, rot = -90))
+
+SW_compare <- actual_pred_compare_plot(df_xgb_pred_ordered_quan10bins, "South West",10)
+SW_compare <- annotate_figure(SW_compare, right = text_grob("South West",size =24, rot = -90))
+
+ggarrange(NW_compare, SE_compare,SW_compare, 
+          nrow = 3, ncol = 1, labels = "B.",  font.label = list(size = 28))
+
+ggsave(filename = "./figures/Figure6B.pdf", width = 44, height = 26, dpi = 300, scale = 1)
+ggsave(filename = "./figures/Figure6B.png", width = 44, height = 26, dpi = 300, scale = 1)
+
 
 ############### Figure S1 ################
 
@@ -809,3 +1245,37 @@ ggarrange(xgb_mMAE_compare_mobi, xgb_acc_compare_mobi,
           common.legend = TRUE, legend = "bottom")
 ggsave(filename = "./figures/FigureS6.pdf", width = 12, height = 16, dpi = 300, scale = 1)
 ggsave(filename = "./figures/FigureS6.png", width = 12, height = 16, dpi = 300, scale = 1)
+
+############### Figure S6 ################
+ave_gain_predHorizon <- readRDS("./saved_objects/ave_gain_predHorizon.rds")
+
+ave_gain_predHorizon <- ave_gain_predHorizon %>% 
+  mutate(Predictors = as.factor(Predictors)) %>% 
+  mutate(Predictors = case_when(Predictors == "grocery_pharmacy" ~ "Grocery&pharmacy",
+                                Predictors == "hosplag_quan" ~ "Hospital admission",
+                                Predictors == "nhs_region" ~ "NHS region",
+                                Predictors == "total.precipitation" ~ "Total precipitation",
+                                Predictors == "retail_recreation" ~ "Retail&recreation",
+                                Predictors == "transit_stations" ~ "Transit stations",
+                                TRUE ~ Predictors)) %>% 
+  mutate(Predictors = str_to_title(Predictors)) %>% 
+  mutate(Predictors = ifelse(Predictors == "Nhs Region", "NHS Region", Predictors)) %>% 
+  arrange(Ave_gain) %>% 
+  mutate(Predictors = factor(Predictors, levels = Predictors)) 
+  
+
+ggplot(data = ave_gain_predHorizon, aes(x = Predictors, y = Ave_gain,
+                                        fill = Predictors)) +
+  geom_bar(stat="identity") +
+  scale_fill_viridis(discrete = TRUE,
+                     guide = guide_legend(reverse = TRUE))+
+  labs(y = "Gain")+
+  coord_flip()+
+  theme_bw()+
+  theme(text = element_text(size = 22),
+        axis.text=element_text(size=20),
+        legend.text = element_text(size=24),
+        legend.title = element_text(size=24))
+
+ggsave(filename = "./figures/FigureS6.pdf", width = 14, height = 12, dpi = 300, scale = 1)
+ggsave(filename = "./figures/FigureS6.png", width = 14, height = 12, dpi = 300, scale = 1)
